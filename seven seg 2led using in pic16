@@ -1,0 +1,57 @@
+#include <xc.h>
+#include <stdio.h>
+
+#define _XTAL_FREQ  16000000
+
+// Common Cathode lookup table
+const unsigned char seg_code[10] = {
+    0b00111111, //0
+    0b00000110, //1
+    0b01011011, //2
+    0b01001111, //3
+    0b01100110, //4
+    0b01101101, //5
+    0b01111101, //6
+    0b00000111, //7
+    0b01111111, //8
+    0b01101111  //9
+};
+
+void display_number(int num)
+{
+    int digits[2]; // Array size changed to 2
+    
+    // 1. MATH: 2 digits extract panra logic
+    digits[0] = (num / 10) % 10; // Tens place (e.g., 35-la 3)
+    digits[1] = num % 10;        // Units place (e.g., 35-la 5)
+    
+    // 2. LOOP: i < 2 nu mathiyachu
+    for(int i = 0; i < 2; i++)
+    {
+        // 3. PIN MAPPING: i=0 (RC4), i=1 (RC5)
+        PORTC = ~(1 << (i + 4)); 
+        
+        PORTD = seg_code[digits[i]];
+        
+        __delay_ms(5); // Multiplexing delay
+        
+        // Ghosting avoid panna PORTD-ah clear pannalam (Optional)
+        PORTD = 0x00;
+    }
+}
+
+void main(void) {
+    
+    // TRISC: RC4 and RC5 are outputs for digit selection
+    TRISC = 0xCF;   // 0b11001111 (RC4, RC5 are 0/Outputs)
+    TRISD = 0x00;   // All PORTD as output for segments
+    
+    PORTC = 0xFF;   
+    PORTD = 0x00;   
+    
+    while(1)
+    {
+        // Ippo 2-digit number (0 to 99) matum pass pannunga
+        display_number(35); 
+    }
+}
